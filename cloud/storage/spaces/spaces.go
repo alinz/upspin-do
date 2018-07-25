@@ -75,7 +75,7 @@ var _ storage.Storage = (*spacesImpl)(nil)
 
 // LinkBase implements Storage.
 func (s *spacesImpl) LinkBase() (base string, err error) {
-	return fmt.Sprintf("%s.%s", s.spaceName, s.endpoint), nil
+	return fmt.Sprintf("%s.%s/", s.spaceName, s.endpoint), nil
 }
 
 // Download implements Storage.
