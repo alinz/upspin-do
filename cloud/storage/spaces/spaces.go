@@ -14,15 +14,15 @@ import (
 // Keys used for storing dial options.
 const (
 	regionName = "spacesRegion"
-	spaceName  = "spaceName"
+	spacesName = "spacesName"
 )
 
 // spacesImpl is an implementation of Storage that connects to an Amazon Simple
 // Storage (S3) backend.
 type spacesImpl struct {
-	client    *minio.Client
-	spaceName string
-	endpoint  string
+	client     *minio.Client
+	spacesName string
+	endpoint   string
 }
 
 // New initializes a Storage implementation that stores data to Spaces Simple
@@ -46,7 +46,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", regionName))
 	}
 
-	name, ok := opts.Opts[spaceName]
+	name, ok := opts.Opts[spacesName]
 	if !ok {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", name))
 	}
@@ -54,15 +54,15 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
-	client, err := minio.New(endpoint, accessKey, secKey, ssl)
+	client, err := minio.NewV4(endpoint, accessKey, secKey, ssl)
 	if err != nil {
 		return nil, errors.E(op, errors.IO, errors.Errorf("unable to create minio session: %s", err))
 	}
 
 	return &spacesImpl{
-		client:    client,
-		spaceName: name,
-		endpoint:  endpoint,
+		client:     client,
+		spacesName: name,
+		endpoint:   endpoint,
 	}, nil
 }
 
@@ -75,17 +75,17 @@ var _ storage.Storage = (*spacesImpl)(nil)
 
 // LinkBase implements Storage.
 func (s *spacesImpl) LinkBase() (base string, err error) {
-	return fmt.Sprintf("%s.%s/", s.spaceName, s.endpoint), nil
+	return fmt.Sprintf("%s.%s/", s.spacesName, s.endpoint), nil
 }
 
 // Download implements Storage.
 func (s *spacesImpl) Download(ref string) ([]byte, error) {
 	const op errors.Op = "cloud/storage/spaces.Download"
 
-	obj, err := s.client.GetObject(s.spaceName, ref, minio.GetObjectOptions{})
+	obj, err := s.client.GetObject(s.spacesName, ref, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, errors.E(op, errors.IO, errors.Errorf(
-			"unable to download ref %q from bucket %q: %s", ref, s.spaceName, err))
+			"unable to download ref %q from bucket %q: %s", ref, s.spacesName, err))
 	}
 
 	buf := new(bytes.Buffer)
@@ -97,10 +97,10 @@ func (s *spacesImpl) Download(ref string) ([]byte, error) {
 func (s *spacesImpl) Put(ref string, contents []byte) error {
 	const op errors.Op = "cloud/storage/spaces.Put"
 
-	_, err := s.client.PutObject(s.spaceName, ref, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{})
+	_, err := s.client.PutObject(s.spacesName, ref, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{})
 	if err != nil {
 		return errors.E(op, errors.IO, errors.Errorf(
-			"unable to upload ref %q to bucket %q: %s", ref, s.spaceName, err))
+			"unable to upload ref %q to bucket %q: %s", ref, s.spacesName, err))
 	}
 
 	return nil
@@ -110,10 +110,10 @@ func (s *spacesImpl) Put(ref string, contents []byte) error {
 func (s *spacesImpl) Delete(ref string) error {
 	const op errors.Op = "cloud/storage/spaces.Delete"
 
-	err := s.client.RemoveObject(s.spaceName, ref)
+	err := s.client.RemoveObject(s.spacesName, ref)
 	if err != nil {
 		return errors.E(op, errors.IO, errors.Errorf(
-			"unable to delete ref %q from bucket %q: %s", ref, s.spaceName, err))
+			"unable to delete ref %q from bucket %q: %s", ref, s.spacesName, err))
 	}
 
 	return nil
@@ -122,5 +122,5 @@ func (s *spacesImpl) Delete(ref string) error {
 // Close implements Storage.
 func (s *spacesImpl) Close() {
 	s.client = nil
-	s.spaceName = ""
+	s.spacesName = ""
 }
