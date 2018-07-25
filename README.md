@@ -1,4 +1,4 @@
-# Upspin `DigitalOcean` repository
+# Upspin `Digitalocean` repository
 
 Note: This repository is under construction.
 
