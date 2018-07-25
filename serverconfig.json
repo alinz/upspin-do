@@ -1,0 +1,5 @@
+{
+  "Addr": "domain.com:443",
+  "User": "upspin@domain.com",
+  "StoreConfig": ["spacesRegion=ny3", "spaceName=test"]
+}
