@@ -51,7 +51,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", name))
 	}
 
-	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
+	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
 	client, err := minio.NewV4(endpoint, accessKey, secKey, ssl)

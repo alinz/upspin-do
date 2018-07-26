@@ -41,7 +41,7 @@ func main() {
 	)
 
 	s.ParseFlags(flag.CommandLine, os.Args[1:], help,
-		"setupstorage-aws -domain=<name> [-region=<region>] [-clean] <bucket_name>")
+		"setupstorage-do -domain=<name> [-region=<region>] <bucket_name>")
 	if flag.NArg() != 1 {
 		s.Exitf("a single bucket name must be provided")
 	}
@@ -56,7 +56,7 @@ func main() {
 
 	cfg.StoreConfig = []string{
 		"backend=Spaces",
-		"spaceName=" + spaceName,
+		"spacesName=" + spaceName,
 		"spacesRegion=" + *region,
 	}
 	s.WriteServerConfig(cfgPath, cfg)
