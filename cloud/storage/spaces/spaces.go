@@ -98,7 +98,7 @@ func (s *spacesImpl) refPath(ref string) string {
 // LinkBase implements Storage.
 func (s *spacesImpl) LinkBase() (base string, err error) {
 	if s.root != "" {
-		return fmt.Sprintf("https://%s.%s/%s", s.spacesName, s.endpoint, s.root), nil
+		return fmt.Sprintf("https://%s.%s/%s/", s.spacesName, s.endpoint, s.root), nil
 	}
 	return fmt.Sprintf("https://%s.%s/", s.spacesName, s.endpoint), nil
 }
