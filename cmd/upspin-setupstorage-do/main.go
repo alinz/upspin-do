@@ -38,6 +38,7 @@ func main() {
 		where  = flag.String("where", filepath.Join(os.Getenv("HOME"), "upspin", "deploy"), "`directory` to store private configuration files")
 		domain = flag.String("domain", "", "domain `name` for this Upspin installation")
 		region = flag.String("region", "nyc3", "region for the Spaces' name")
+		root   = flag.String("root", "", "root for the Spaces' path")
 	)
 
 	s.ParseFlags(flag.CommandLine, os.Args[1:], help,
@@ -58,6 +59,7 @@ func main() {
 		"backend=Spaces",
 		"spacesName=" + spaceName,
 		"spacesRegion=" + *region,
+		"spacesRoot=" + *root,
 	}
 	s.WriteServerConfig(cfgPath, cfg)
 }

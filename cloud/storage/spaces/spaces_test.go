@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -17,20 +18,26 @@ var (
 	testData    = []byte(testDataStr)
 	fileName    = fmt.Sprintf("test-file-%d", time.Now().Second())
 
-	testSpacesName  = flag.String("test_space", "", "bucket name to use for testing")
-	testSpaceRegion = flag.String("test_region", "", "region to use for the test bucket")
-	useSpaces       = flag.Bool("use_spaces", false, "enable to run aws tests; requires aws credentials")
+	testSpacesName   = flag.String("test_space", "", "bucket name to use for testing")
+	testSpacesRegion = flag.String("test_region", "", "region to use for the test bucket")
+	testSpacesRoot   = flag.String("test_root", "", "region to use for the test bucket")
+	useSpaces        = flag.Bool("use_spaces", false, "enable to run aws tests; requires aws credentials")
+
+	testFilePath = ""
 )
+
+// NOTE: test_root should not have trailing slash. for example, /test-upspin is wrong
+// use test-upspin
 
 // This is more of a regression test as it uses the running cloud
 // storage in prod. However, since S3 is always available, we accept
 // relying on it.
 func TestPutAndDownload(t *testing.T) {
-	err := client.Put(fileName, testData)
+	err := client.Put(testFilePath, testData)
 	if err != nil {
 		t.Fatalf("Can't put: %v", err)
 	}
-	data, err := client.Download(fileName)
+	data, err := client.Download(testFilePath)
 	if err != nil {
 		t.Fatalf("Can't Download: %v", err)
 	}
@@ -40,11 +47,11 @@ func TestPutAndDownload(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	err := client.Put(fileName, testData)
+	err := client.Put(testFilePath, testData)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = client.Delete(fileName)
+	err = client.Delete(testFilePath)
 	if err != nil {
 		t.Fatalf("Expected no errors, got %v", err)
 	}
@@ -64,11 +71,13 @@ test, ensure you are properly authorized to upload to an Spaces bucket named by 
 	// Create client that writes to test bucket.
 	var err error
 	client, err = storage.Dial("Spaces",
-		storage.WithKeyValue("spacesRegion", *testSpaceRegion),
+		storage.WithKeyValue("spacesRegion", *testSpacesRegion),
 		storage.WithKeyValue("spacesName", *testSpacesName))
 	if err != nil {
 		log.Fatalf("cloud/storage/spaces: couldn't set up client: %v", err)
 	}
+
+	testFilePath = filepath.Join(*testSpacesRoot, fileName)
 
 	code := m.Run()
 

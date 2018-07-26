@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	minio "github.com/minio/minio-go"
 
@@ -15,6 +17,7 @@ import (
 const (
 	regionName = "spacesRegion"
 	spacesName = "spacesName"
+	spacesRoot = "spacesRoot"
 )
 
 // this meta data is used to make all the files used in
@@ -29,6 +32,7 @@ type spacesImpl struct {
 	client     *minio.Client
 	spacesName string
 	endpoint   string
+	root       string
 }
 
 // New initializes a Storage implementation that stores data to Spaces Simple
@@ -57,6 +61,13 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", name))
 	}
 
+	root, ok := opts.Opts[spacesRoot]
+	if ok {
+		if strings.HasPrefix(root, "/") {
+			return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is shouldn't start with slash", name))
+		}
+	}
+
 	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
@@ -69,6 +80,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 		client:     client,
 		spacesName: name,
 		endpoint:   endpoint,
+		root:       root,
 	}, nil
 }
 
@@ -79,14 +91,23 @@ func init() {
 // Guarantee we implement the Storage interface.
 var _ storage.Storage = (*spacesImpl)(nil)
 
+func (s *spacesImpl) refPath(ref string) string {
+	return filepath.Join(s.root, ref)
+}
+
 // LinkBase implements Storage.
 func (s *spacesImpl) LinkBase() (base string, err error) {
+	if s.root != "" {
+		return fmt.Sprintf("https://%s.%s/%s", s.spacesName, s.endpoint, s.root), nil
+	}
 	return fmt.Sprintf("https://%s.%s/", s.spacesName, s.endpoint), nil
 }
 
 // Download implements Storage.
 func (s *spacesImpl) Download(ref string) ([]byte, error) {
 	const op errors.Op = "cloud/storage/spaces.Download"
+
+	ref = s.refPath(ref)
 
 	obj, err := s.client.GetObject(s.spacesName, ref, minio.GetObjectOptions{})
 	if err != nil {
@@ -103,6 +124,8 @@ func (s *spacesImpl) Download(ref string) ([]byte, error) {
 func (s *spacesImpl) Put(ref string, contents []byte) error {
 	const op errors.Op = "cloud/storage/spaces.Put"
 
+	ref = s.refPath(ref)
+
 	_, err := s.client.PutObject(s.spacesName, ref, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{
 		UserMetadata: metaData,
 	})
@@ -118,6 +141,8 @@ func (s *spacesImpl) Put(ref string, contents []byte) error {
 // Delete implements Storage.
 func (s *spacesImpl) Delete(ref string) error {
 	const op errors.Op = "cloud/storage/spaces.Delete"
+
+	ref = s.refPath(ref)
 
 	err := s.client.RemoveObject(s.spacesName, ref)
 	if err != nil {
