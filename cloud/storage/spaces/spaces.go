@@ -17,6 +17,12 @@ const (
 	spacesName = "spacesName"
 )
 
+// this meta data is used to make all the files used in
+// upspin public
+var metaData = map[string]string{
+	"x-amz-acl": "public-read",
+}
+
 // spacesImpl is an implementation of Storage that connects to an Amazon Simple
 // Storage (S3) backend.
 type spacesImpl struct {
@@ -54,7 +60,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
-	client, err := minio.NewV4(endpoint, accessKey, secKey, ssl)
+	client, err := minio.New(endpoint, accessKey, secKey, ssl)
 	if err != nil {
 		return nil, errors.E(op, errors.IO, errors.Errorf("unable to create minio session: %s", err))
 	}
@@ -97,7 +103,10 @@ func (s *spacesImpl) Download(ref string) ([]byte, error) {
 func (s *spacesImpl) Put(ref string, contents []byte) error {
 	const op errors.Op = "cloud/storage/spaces.Put"
 
-	_, err := s.client.PutObject(s.spacesName, ref, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{})
+	_, err := s.client.PutObject(s.spacesName, ref, bytes.NewReader(contents), int64(len(contents)), minio.PutObjectOptions{
+		UserMetadata: metaData,
+	})
+
 	if err != nil {
 		return errors.E(op, errors.IO, errors.Errorf(
 			"unable to upload ref %q to bucket %q: %s", ref, s.spacesName, err))
