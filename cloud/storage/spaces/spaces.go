@@ -60,7 +60,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
-	client, err := minio.New(endpoint, accessKey, secKey, ssl)
+	client, err := minio.NewV4(endpoint, accessKey, secKey, ssl)
 	if err != nil {
 		return nil, errors.E(op, errors.IO, errors.Errorf("unable to create minio session: %s", err))
 	}
