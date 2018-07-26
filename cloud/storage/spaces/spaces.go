@@ -51,7 +51,7 @@ func New(opts *storage.Opts) (storage.Storage, error) {
 		return nil, errors.E(op, errors.Invalid, errors.Errorf("%q option is required", name))
 	}
 
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
+	endpoint := fmt.Sprintf("%s.digitaloceanspaces.com", region)
 
 	// Initiate a client using DigitalOcean Spaces.
 	client, err := minio.NewV4(endpoint, accessKey, secKey, ssl)
@@ -75,7 +75,7 @@ var _ storage.Storage = (*spacesImpl)(nil)
 
 // LinkBase implements Storage.
 func (s *spacesImpl) LinkBase() (base string, err error) {
-	return fmt.Sprintf("%s.%s/", s.spacesName, s.endpoint), nil
+	return fmt.Sprintf("https://%s.%s/", s.spacesName, s.endpoint), nil
 }
 
 // Download implements Storage.
