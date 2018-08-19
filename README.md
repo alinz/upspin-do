@@ -1,5 +1,7 @@
 # Upspin `Digitalocean` repository
 
+> NOTE This repo has been moved to `https://github.com/upspin/digitalocean`.
+
 Note: This repository is under construction.
 
 This repository contains support for running Upspin on
